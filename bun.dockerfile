@@ -1,7 +1,7 @@
 FROM oven/bun:latest
 
-RUN echo "alias node='bun --bun'" >> /root/.profile \
+RUN ln -s /usr/local/bin/bun /usr/local/bin/node \
   && apt-get update \
   && apt-get install -y git
 
-CMD ["/bin/sh", "-l"]
+CMD ["bash"]
