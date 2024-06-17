@@ -42,5 +42,5 @@ jobs:
           context: .
           file: bun.dockerfile
           push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
-          tags: ${{ env.REGISTRY_IMAGE }}:bun-latest ${{ env.REGISTRY_IMAGE }}:bun-${{ steps.bun.bun-version }}
+          tags: ${{ env.REGISTRY_IMAGE }}:bun-latest,${{ env.REGISTRY_IMAGE }}:bun-${{ steps.bun.outputs.bun-version }}
           labels: ${{ steps.meta.outputs.labels }}
