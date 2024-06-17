@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Bun
+        id: bun
+        uses: oven-sh/setup-bun@v1
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -39,5 +42,5 @@ jobs:
           context: .
           file: bun.dockerfile
           push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
-          tags: ${{ env.REGISTRY_IMAGE }}:bun-latest
+          tags: ${{ env.REGISTRY_IMAGE }}:bun-latest ${{ env.REGISTRY_IMAGE }}:bun-${{ steps.bun.bun-version }}
           labels: ${{ steps.meta.outputs.labels }}
