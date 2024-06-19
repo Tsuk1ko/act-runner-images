@@ -6,35 +6,57 @@ on:
       push:
         description: push
         required: true
-        default: true
+        default: false
         type: boolean
+      check-only:
+        description: check only
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: '0 0 * * 1'
   push:
     branches:
       - main
     paths:
       - bun.dockerfile
 
-env:
-  REGISTRY_IMAGE: tsuk1ko/act-runner-images
-
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      bun-version: ${{ steps.bun.outputs.bun-version }}
+      tag-status: ${{ steps.tag.outputs.status }}
+    steps:
+      - name: Setup Bun
+        id: bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          no-cache: true
+      - name: Check docker tag
+        id: tag
+        run: echo status=$(curl -s -o /dev/null -w "%{http_code}" https://registry.hub.docker.com/v2/namespaces/tsuk1ko/repositories/act-runner-images/tags/bun-${{ steps.bun.outputs.bun-version }}) >> "$GITHUB_OUTPUT"
+      - name: Outputs
+        run: |
+          echo bun-version=${{ steps.bun.outputs.bun-version }}
+          echo tag-status=${{ steps.tag.outputs.status }}
+
   build:
+    needs: check
+    if: (github.event_name != 'workflow_dispatch' || !inputs.check-only) && (github.event_name != 'schedule' || needs.check.outputs.tag-status == '404')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Bun
-        id: bun
-        uses: oven-sh/setup-bun@v1
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY_IMAGE }}
+          images: ${{ vars.DOCKERHUB_IMAGE }}
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -42,5 +64,5 @@ jobs:
           context: .
           file: bun.dockerfile
           push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
-          tags: ${{ env.REGISTRY_IMAGE }}:bun-latest,${{ env.REGISTRY_IMAGE }}:bun-${{ steps.bun.outputs.bun-version }}
+          tags: ${{ vars.DOCKERHUB_IMAGE }}:bun-latest,${{ vars.DOCKERHUB_IMAGE }}:bun-${{ needs.check.outputs.bun-version }}
           labels: ${{ steps.meta.outputs.labels }}
