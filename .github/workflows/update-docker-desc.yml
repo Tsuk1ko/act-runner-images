@@ -17,6 +17,6 @@ jobs:
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: tsuk1ko/act-runner-images
+          repository: ${{ vars.DOCKERHUB_REPOSITORY }}
