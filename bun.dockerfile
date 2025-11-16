@@ -1,7 +1,3 @@
-FROM oven/bun:latest
+FROM gitea/runner-images:ubuntu-latest
 
-RUN ln -s /usr/local/bin/bun /usr/local/bin/node \
-  && apt-get update \
-  && apt-get install -y git coreutils
-
-CMD ["bash"]
+RUN curl -fsSL https://bun.sh/install | bash
