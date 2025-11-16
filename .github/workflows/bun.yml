@@ -35,7 +35,7 @@ jobs:
           no-cache: true
       - name: Check docker tag
         id: tag
-        run: echo status=$(curl -s -o /dev/null -w "%{http_code}" https://registry.hub.docker.com/v2/namespaces/tsuk1ko/repositories/act-runner-images/tags/bun-${{ steps.bun.outputs.bun-version }}) >> "$GITHUB_OUTPUT"
+        run: echo status=$(curl -s -o /dev/null -w "%{http_code}" https://registry.hub.docker.com/v2/namespaces/${{ vars.DOCKERHUB_USERNAME }}/repositories/act-runner-image-bun/tags/${{ steps.bun.outputs.bun-version }}) >> "$GITHUB_OUTPUT"
       - name: Outputs
         run: |
           echo bun-version=${{ steps.bun.outputs.bun-version }}
@@ -47,12 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.DOCKERHUB_REPOSITORY }}
+          images: ${{ vars.DOCKERHUB_USERNAME }}/act-runner-image-bun
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -64,5 +64,5 @@ jobs:
           context: .
           file: bun.dockerfile
           push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
-          tags: ${{ vars.DOCKERHUB_REPOSITORY }}:bun-latest,${{ vars.DOCKERHUB_REPOSITORY }}:bun-${{ needs.check.outputs.bun-version }}
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/act-runner-image-bun:latest,${{ vars.DOCKERHUB_USERNAME }}/act-runner-image-bun:${{ needs.check.outputs.bun-version }}
           labels: ${{ steps.meta.outputs.labels }}
